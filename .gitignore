@@ -1,0 +1,85 @@
+# ─── Flutter / Dart ─────────────────────────────────────────────────────────
+**/doc/api/
+**/ios/Flutter/.last_build_id
+.dart_tool/
+.flutter-plugins
+.flutter-plugins-dependencies
+.pub-cache/
+.pub/
+rasplab/build/
+rasplab/.dart_tool/
+rasplab/.idea/
+rasplab/.metadata
+rasplab/*.iml
+rasplab/android/app/debug
+rasplab/android/app/profile
+rasplab/android/app/release
+
+# ─── API 키 / 환경변수 ────────────────────────────────────────────────────
+.env
+.env.*
+!.env.example
+rasplab/.env
+rasplab/.env.*
+!rasplab/.env.example
+
+# ─── Android 빌드 결과물 ─────────────────────────────────────────────────
+rasplab/android/.gradle/
+rasplab/android/captures/
+rasplab/android/local.properties
+rasplab/android/GeneratedPluginRegistrant.java
+rasplab/android/key.properties
+*.keystore
+*.jks
+
+# ─── iOS 빌드 결과물 ─────────────────────────────────────────────────────
+rasplab/ios/Pods/
+rasplab/ios/.symlinks/
+rasplab/ios/Flutter/App.framework/
+rasplab/ios/Flutter/Flutter.framework/
+rasplab/ios/Flutter/Flutter.podspec
+rasplab/ios/Flutter/Generated.xcconfig
+rasplab/ios/Flutter/ephemeral/
+rasplab/ios/Runner/GeneratedPluginRegistrant.*
+rasplab/ios/Runner.xcworkspace/xcuserdata/
+*.xcworkspace
+
+# ─── Python / Raspberry Pi ───────────────────────────────────────────────
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.egg-info/
+.eggs/
+dist/
+*.so
+venv/
+.venv/
+pi/venv/
+/tmp/rasplab_*.py
+
+# QR 이미지 (생성 파일)
+*.png
+!rasplab/assets/**/*.png
+
+# ─── IDE / 에디터 ────────────────────────────────────────────────────────
+.vscode/settings.json
+.vscode/*.log
+.idea/
+*.iml
+*.ipr
+*.iws
+*.swp
+*.swo
+*~
+
+# ─── OS ─────────────────────────────────────────────────────────────────
+.DS_Store
+.DS_Store?
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+# ─── 로그 ─────────────────────────────────────────────────────────────────
+*.log
+logs/
