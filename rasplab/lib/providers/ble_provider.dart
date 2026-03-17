@@ -42,14 +42,22 @@ class BleManager {
 
   Future<String?> requestDeviceListRaw() async {
     await sendMessage(0x10, const []);
-    final result = await _bleService.resultStream.first.timeout(
-      const Duration(seconds: 8),
-      onTimeout: () => const ExecutionResult(
-        success: false,
-        output: '',
-        error: '장치 목록 요청 타임아웃',
-      ),
-    );
+
+    final result = await _bleService.resultStream
+        .firstWhere((r) {
+          if (!r.success) return false;
+          final output = r.output.trim();
+          // 장치 목록 응답은 JSON 배열 형태
+          return output.startsWith('[') && output.contains('"board_type"');
+        })
+        .timeout(
+          const Duration(seconds: 8),
+          onTimeout: () => const ExecutionResult(
+            success: false,
+            output: '',
+            error: '장치 목록 요청 타임아웃',
+          ),
+        );
 
     if (!result.success) {
       throw Exception(result.error ?? '장치 목록 요청 실패');
