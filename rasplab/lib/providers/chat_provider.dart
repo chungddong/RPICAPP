@@ -1,7 +1,10 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../models/message.dart';
+import '../models/device.dart';
 import '../services/claude_service.dart';
 import 'session_provider.dart';
+import 'device_provider.dart';
+import 'ble_provider.dart';
 
 final claudeServiceProvider = Provider<ClaudeService>((ref) => ClaudeService());
 
@@ -20,6 +23,21 @@ class ChatNotifier extends Notifier<List<Message>> {
   }
 
   void clear() => state = [];
+
+  // 기기 선택 처리
+  Future<void> selectDevice(Device device) async {
+    // 로컬 상태 업데이트
+    ref.read(selectedDeviceProvider.notifier).state = device;
+
+    // BLE를 통해 Pi에 기기 선택 메시지 전송
+    try {
+      final bleManager = ref.read(bleManagerProvider);
+      await bleManager.selectDevice(device.id);
+      print('Device ${device.name} selected via BLE');
+    } catch (e) {
+      print('Failed to select device: $e');
+    }
+  }
 
   // 사용자 메시지 전송 → Claude 응답 요청
   Future<void> sendUserMessage(String text) async {
@@ -57,7 +75,14 @@ class ChatNotifier extends Notifier<List<Message>> {
     try {
       final claude = ref.read(claudeServiceProvider);
       final history = state.sublist(0, state.length - 1);
-      final response = await claude.sendMessage(history);
+      final selectedDevice = ref.read(selectedDeviceProvider);
+      
+      // 기기별 커스텀 AI 프롬프트 사용
+      final systemPrompt = selectedDevice?.aiSystemPrompt;
+      final response = await claude.sendMessage(
+        history,
+        systemPrompt: systemPrompt,
+      );
 
       // Message.fromJson으로 codeBlocks 재파싱
       final parsed = Message.fromJson({

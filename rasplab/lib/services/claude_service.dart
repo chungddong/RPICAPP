@@ -4,7 +4,7 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 import '../config/constants.dart';
 import '../models/message.dart';
 
-const String _systemPrompt = '''
+const String _defaultSystemPrompt = '''
 너는 "RaspLab" 이라는 라즈베리파이 하드웨어 교육 앱의 AI 튜터야.
 
 ## 역할
@@ -48,7 +48,11 @@ class ClaudeService {
   };
 
   /// 대화 히스토리를 포함하여 Claude에게 메시지 전송
-  Future<String> sendMessage(List<Message> messages) async {
+  /// [systemPrompt] 기기별 커스텀 프롬프트 (기본값: Pi용 프롬프트)
+  Future<String> sendMessage(
+    List<Message> messages, {
+    String? systemPrompt,
+  }) async {
     final history = messages
         .where((m) => m.role != MessageRole.system)
         .map((m) => {
@@ -61,7 +65,7 @@ class ClaudeService {
     final body = jsonEncode({
       'model': kClaudeModel,
       'max_tokens': kClaudeMaxTokens,
-      'system': _systemPrompt,
+      'system': systemPrompt ?? _defaultSystemPrompt,
       'messages': history,
     });
 
