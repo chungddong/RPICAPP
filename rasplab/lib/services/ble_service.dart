@@ -101,6 +101,11 @@ class BleService {
     );
   }
 
+  Future<void> writeRawPacket(Uint8List packet) async {
+    if (_codeWriteChar == null) throw Exception('BLE 미연결');
+    await _codeWriteChar!.write(packet, withoutResponse: false);
+  }
+
   /// 실행 중지
   Future<void> stopExecution() async {
     if (_controlChar == null) return;

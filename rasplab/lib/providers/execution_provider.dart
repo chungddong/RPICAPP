@@ -2,6 +2,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../models/code_block.dart';
 import '../models/device.dart';
 import 'connection_provider.dart';
+import 'device_provider.dart';
+import 'ble_provider.dart';
 
 // 현재 실행 중인 코드블록 ID (null = 실행 없음)
 final runningCodeIdProvider = StateProvider<String?>((ref) => null);
@@ -16,7 +18,9 @@ class ExecutionService {
 
   Future<ExecutionResult?> runCode(CodeBlock block) async {
     final ble = _ref.read(bleServiceProvider);
+    final bleManager = _ref.read(bleManagerProvider);
     if (_ref.read(connectionProvider) == null) return null;
+    final selectedDevice = _ref.read(selectedDeviceProvider);
 
     // 상태 업데이트: running
     _ref.read(executionStateProvider.notifier).update(
@@ -25,7 +29,12 @@ class ExecutionService {
     _ref.read(runningCodeIdProvider.notifier).state = block.id;
 
     try {
-      final result = await ble.sendCode(block.code);
+      final isPi = selectedDevice == null ||
+        selectedDevice.type == DeviceType.raspberryPi;
+
+      final result = isPi
+        ? await ble.sendCode(block.code)
+        : await bleManager.uploadArduinoCode(block.code);
 
       // 상태 업데이트: success / error
       _ref.read(executionStateProvider.notifier).update(

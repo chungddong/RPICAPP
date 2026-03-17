@@ -9,7 +9,7 @@ final deviceListProvider = StreamProvider<List<Device>>((ref) async* {
   final connection = ref.watch(connectionProvider);
 
   // Pi가 연결되지 않으면 기본값 반환
-  if (!connection!.isConnected) {
+  if (connection == null || !connection.isConnected) {
     yield [
       Device(
         id: 'pi',
@@ -36,13 +36,19 @@ final deviceListProvider = StreamProvider<List<Device>>((ref) async* {
   // 주기적으로 외부 기기 목록 요청
   while (true) {
     try {
-      // ref.read(bleManagerProvider);  // 향후 0x10 메시지 송수신에 사용
-      
-      // 0x10: 기기 목록 요청 (Pi로부터 응답 받기)
-      // 실제로는 Pi에 메시지를 보내고 resultStream에서 응답을 기다려야 함
-      // 지금은 단순화해서 Pi만 반환
-      
-      yield devices;
+      final bleManager = ref.read(bleManagerProvider);
+      final response = await bleManager.requestDeviceListRaw();
+
+      if (response != null && response.trim().isNotEmpty) {
+        final parsed = _parseDeviceList(response);
+        final merged = <Device>[
+          devices.first,
+          ...parsed.where((d) => d.id != 'pi'),
+        ];
+        yield merged;
+      } else {
+        yield devices;
+      }
       
       // 5초마다 갱신
       await Future.delayed(const Duration(seconds: 5));

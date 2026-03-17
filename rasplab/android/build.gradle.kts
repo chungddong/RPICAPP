@@ -5,6 +5,9 @@ allprojects {
     }
 }
 
+// Impeller 비활성화
+extra.set("enable_android_impeller", false)
+
 val newBuildDir: Directory = rootProject.layout.buildDirectory.dir("../../build").get()
 rootProject.layout.buildDirectory.value(newBuildDir)
 

@@ -1,8 +1,9 @@
-import 'dart:convert';
 import 'dart:typed_data';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../services/ble_service.dart';
+import '../models/device.dart';
 import '../config/constants.dart';
+import '../services/ble_service.dart';
+import 'connection_provider.dart';
 
 /// BLE 매니저 (멀티 디바이스 지원)
 class BleManager {
@@ -32,14 +33,30 @@ class BleManager {
       }
 
       final packet = _buildPacket(type, 0, 0, payload);
-      
-      // BleService의 코드 전송과 동일한 방식으로 fff1에 쓰기
-      // (내부적으로 codeWriteChar가 fff1임)
-      await Future.delayed(const Duration(milliseconds: 20));
+      await _bleService.writeRawPacket(packet);
     } catch (e) {
       print('BLE send error: $e');
       rethrow;
     }
+  }
+
+  Future<String?> requestDeviceListRaw() async {
+    await sendMessage(0x10, const []);
+    final result = await _bleService.resultStream.first.timeout(
+      const Duration(seconds: 8),
+      onTimeout: () => const ExecutionResult(
+        success: false,
+        output: '',
+        error: '장치 목록 요청 타임아웃',
+      ),
+    );
+
+    if (!result.success) {
+      throw Exception(result.error ?? '장치 목록 요청 실패');
+    }
+
+    _lastResponse = result.output;
+    return _lastResponse;
   }
 
   /// 0x11: 기기 선택
@@ -49,9 +66,40 @@ class BleManager {
   }
 
   /// 0x12: Arduino 코드 업로드 (기존 sendCode 재활용)
-  Future<void> uploadArduinoCode(String code) async {
-    // 기존 sendCode 메서드를 사용
-    await _bleService.sendCode(code);
+  Future<ExecutionResult> uploadArduinoCode(String code) async {
+    if (_bleService.connectedDevice == null) {
+      throw Exception('BLE 미연결');
+    }
+
+    final bytes = Uint8List.fromList(code.codeUnits);
+    final chunks = _splitChunks(bytes, kBlePayloadSize);
+    final total = chunks.length;
+
+    for (int i = 0; i < total; i++) {
+      final packet = _buildPacket(0x12, i + 1, total, chunks[i]);
+      await _bleService.writeRawPacket(packet);
+    }
+
+    final result = await _bleService.resultStream.first.timeout(
+      const Duration(seconds: 120),
+      onTimeout: () => const ExecutionResult(
+        success: false,
+        output: '',
+        error: 'Arduino 업로드 타임아웃 (120초 초과)',
+      ),
+    );
+
+    return result;
+  }
+
+  List<Uint8List> _splitChunks(Uint8List data, int size) {
+    final chunks = <Uint8List>[];
+    for (int i = 0; i < data.length; i += size) {
+      final end = (i + size).clamp(0, data.length);
+      chunks.add(data.sublist(i, end));
+    }
+    if (chunks.isEmpty) chunks.add(Uint8List(0));
+    return chunks;
   }
 
   /// BLE 응답 저장
@@ -75,11 +123,4 @@ final bleManagerProvider = Provider<BleManager>((ref) {
   final manager = BleManager(bleService);
   ref.onDispose(manager.dispose);
   return manager;
-});
-
-/// BLE Service Provider
-final bleServiceProvider = Provider<BleService>((ref) {
-  final service = BleService();
-  ref.onDispose(service.dispose);
-  return service;
 });

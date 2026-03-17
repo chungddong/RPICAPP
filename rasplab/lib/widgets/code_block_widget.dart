@@ -4,8 +4,10 @@ import 'package:flutter_highlight/flutter_highlight.dart';
 import 'package:flutter_highlight/themes/atom-one-dark.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../models/code_block.dart';
+import '../models/device.dart';
 import '../providers/connection_provider.dart';
 import '../providers/execution_provider.dart';
+import '../providers/device_provider.dart';
 import '../config/theme.dart';
 import '../screens/connect_screen.dart';
 import 'execution_result_card.dart';
@@ -29,6 +31,10 @@ class _CodeBlockWidgetState extends ConsumerState<CodeBlockWidget> {
     final stateMap = ref.watch(executionStateProvider);
     final execState = stateMap[widget.block.id] ?? ExecutionState.idle;
     final isConnected = ref.watch(connectionProvider)?.isConnected ?? false;
+    final selectedDevice = ref.watch(selectedDeviceProvider);
+    final isPi = selectedDevice == null ||
+      selectedDevice.type == DeviceType.raspberryPi;
+    final actionLabel = isPi ? '▶ 실행' : '⬆ 업로드';
     final isThisRunning = runningId == widget.block.id;
 
     final lines = widget.block.code.split('\n');
@@ -139,7 +145,13 @@ class _CodeBlockWidgetState extends ConsumerState<CodeBlockWidget> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                _buildActionButton(context, execState, isThisRunning, isConnected),
+                _buildActionButton(
+                  context,
+                  execState,
+                  isThisRunning,
+                  isConnected,
+                  actionLabel,
+                ),
                 if (execState == ExecutionState.success ||
                     execState == ExecutionState.error) ...[
                   const SizedBox(height: 8),
@@ -158,6 +170,7 @@ class _CodeBlockWidgetState extends ConsumerState<CodeBlockWidget> {
     ExecutionState execState,
     bool isThisRunning,
     bool isConnected,
+    String actionLabel,
   ) {
     if (isThisRunning) {
       return ElevatedButton.icon(
@@ -185,7 +198,7 @@ class _CodeBlockWidgetState extends ConsumerState<CodeBlockWidget> {
         }
       },
       icon: Icon(isConnected ? Icons.play_arrow : Icons.bluetooth, size: 16),
-      label: Text(isConnected ? '▶ 실행' : 'BLE 연결 필요'),
+      label: Text(isConnected ? actionLabel : 'BLE 연결 필요'),
     );
   }
 }

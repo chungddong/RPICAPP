@@ -98,10 +98,7 @@ class ChatBubble extends ConsumerWidget {
     // AI 말풍선
     final cleanText = extractCleanText(message.content);
     final wiringText = extractWiring(message.content);
-    // Python 코드 블록만 표시
-    final pythonBlocks = message.codeBlocks
-        .where((b) => b.language == 'python')
-        .toList();
+    final codeBlocks = message.codeBlocks;
 
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
@@ -146,8 +143,8 @@ class ChatBubble extends ConsumerWidget {
                   WiringGuideCard(content: wiringText),
                 ],
 
-                // ── Python 코드블록 카드들 ─────────────
-                for (final block in pythonBlocks) ...[
+                // ── 코드블록 카드들 ─────────────────────
+                for (final block in codeBlocks) ...[
                   const SizedBox(height: 6),
                   CodeBlockWidget(block: block),
                 ],
