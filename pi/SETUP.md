@@ -1,5 +1,29 @@
 # RaspLab — 라즈베리파이 셋업 가이드
 
+## 🚀 빠른 설치 (자동)
+
+GitHub에서 클론하고 한 줄로 모든 설정을 자동화합니다:
+
+```bash
+git clone https://github.com/username/rasplab.git /tmp/rasplab
+cd /tmp/rasplab/pi
+sudo bash setup.sh
+```
+
+**또는** 직접 스크립트 다운로드:
+
+```bash
+curl -sSL https://raw.githubusercontent.com/username/rasplab/main/pi/setup.sh | sudo bash
+```
+
+이 방법은 아래의 1-5단계를 모두 자동으로 처리합니다.
+
+---
+
+## 📋 수동 설치 (단계별)
+
+복잡한 설정이 필요하거나 커스터마이징이 필요한 경우 아래를 따르세요.
+
 ## 필요 환경
 
 | 항목 | 사양 |
@@ -16,15 +40,18 @@
 라즈베리파이에서 터미널을 열거나 SSH로 접속한 후:
 
 ```bash
-# 폴더 생성
+# 방법 A: GitHub에서 클론
+git clone https://github.com/username/rasplab.git /tmp/rasplab
 sudo mkdir -p /opt/rasplab
-sudo chown $USER:$USER /opt/rasplab
+sudo cp /tmp/rasplab/pi/* /opt/rasplab/
 
-# USB/네트워크로 복사하는 경우 (PC에서 Pi로 scp)
-scp raspi_ble_daemon.py generate_qr.py requirements.txt pi@raspberrypi.local:/opt/rasplab/
+# 방법 B: USB에서 복사
+# (USB를 Pi에 연결한 후)
+sudo cp /mnt/usb/pi/* /opt/rasplab/
 
-# 또는 Pi에서 직접 내려받기 (git 사용 시)
-# git clone <repo_url> && cp pi/* /opt/rasplab/
+# 방법 C: PC에서 scp 전송
+# (PC에서 실행)
+scp pi/*.py pi/rasplab.service pi/requirements.txt pi@raspberrypi.local:/opt/rasplab/
 ```
 
 ---
@@ -34,7 +61,8 @@ scp raspi_ble_daemon.py generate_qr.py requirements.txt pi@raspberrypi.local:/op
 ```bash
 # BlueZ 및 D-Bus 개발 라이브러리
 sudo apt update
-sudo apt install -y python3-pip python3-dbus bluez bluetooth libdbus-1-dev
+sudo apt install -y python3-pip python3-dbus bluez bluetooth libdbus-1-dev \
+                   python3-gpiozero python3-lgpio
 
 # BlueZ가 실행 중인지 확인
 sudo systemctl status bluetooth
