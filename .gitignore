@@ -83,3 +83,6 @@ Desktop.ini
 # ─── 로그 ─────────────────────────────────────────────────────────────────
 *.log
 logs/
+
+# ─── Launcher Assets (local binaries/images) ─────────────────────────────
+launcher/assets/

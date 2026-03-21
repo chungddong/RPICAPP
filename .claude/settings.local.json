@@ -1,0 +1,7 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(grep -r \"serial\\\\|identity\\\\|MAC\\\\|device.id\\\\|registration\" /d/바탕화면/Develop/RPICAPP/launcher/src/ttalkak_launcher/*.py)"
+    ]
+  }
+}
